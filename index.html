@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>AR Arrays - Aprende Arreglos en Realidad Aumentada</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script type="module" crossorigin src="/assets/index-ycJF_Moe.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-b1pFPcZb.css">
+
+    <style>
+      /* =========================================================
+         OPTIMIZACIONES MÓVILES PARA REALIDAD AUMENTADA
+         ========================================================= */
+
+      /* Variables de área segura para notch / Dynamic Island / barra de navegación */
+      :root {
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+      }
+
+      /* ── Modo AR activado ───────────────────────────────────── */
+      .ar-mode {
+        /* Elimina cualquier scroll o rebote en iOS */
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .ar-mode body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: transparent !important;
+        /* Evita scroll de rebote (iOS) */
+        overscroll-behavior: none;
+        touch-action: none;
+      }
+
+      .ar-mode #root {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        /* Respeta áreas seguras (notch, home indicator) */
+        width: 100vw;
+        height: 100vh;
+        /* dvh = dynamic viewport height (mejor en móviles modernos) */
+        height: 100dvh;
+      }
+
+      /* ── Canvas de A-Frame / AR.js ───────────────────────────── */
+      .ar-mode .a-canvas,
+      .ar-mode canvas {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        /* Escala con la densidad de píxeles del dispositivo */
+        object-fit: cover;
+        /* Deshabilita aceleración GPU que puede causar parpadeo en iOS */
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+
+      /* ── Video de la cámara (AR.js lo inyecta como <video>) ─── */
+      .ar-mode video {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        object-fit: cover !important;
+        z-index: -1;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+      }
+
+      /* ── Escena A-Frame ─────────────────────────────────────── */
+      .ar-mode a-scene {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+      }
+
+      /* ── UI superpuesta sobre la cámara ─────────────────────── */
+      /* El overlay con controles respeta áreas seguras (notch/home) */
+      .ar-mode .ar-ui-overlay {
+        padding-top: calc(var(--safe-top) + 1rem);
+        padding-bottom: calc(var(--safe-bottom) + 1rem);
+        padding-left: calc(var(--safe-left) + 1rem);
+        padding-right: calc(var(--safe-right) + 1rem);
+      }
+
+      /* Ajustes de padding para la UI cuando hay notch */
+      .ar-mode [class*="p-6"],
+      .ar-mode [class*="p-4"] {
+        padding-top: max(1.5rem, calc(var(--safe-top) + 0.75rem));
+        padding-left: max(1.5rem, calc(var(--safe-left) + 0.75rem));
+        padding-right: max(1.5rem, calc(var(--safe-right) + 0.75rem));
+      }
+
+      .ar-mode [class*="pb-10"],
+      .ar-mode [class*="pb-16"] {
+        padding-bottom: max(2.5rem, calc(var(--safe-bottom) + 1.5rem));
+      }
+
+      /* ── Orientación landscape en móviles ───────────────────── */
+      @media (orientation: landscape) and (max-height: 500px) {
+        .ar-mode [class*="text-2xl"] {
+          font-size: 1rem !important;
+          line-height: 1.4 !important;
+        }
+
+        .ar-mode [class*="px-8"] {
+          padding-left: 0.75rem !important;
+          padding-right: 0.75rem !important;
+        }
+
+        .ar-mode [class*="py-4"] {
+          padding-top: 0.5rem !important;
+          padding-bottom: 0.5rem !important;
+        }
+
+        /* Panel inferior más compacto en landscape */
+        .ar-mode [class*="max-w-lg"] {
+          max-width: 90vw !important;
+        }
+
+        /* Botón de regreso más pequeño */
+        .ar-mode [class*="p-4"][class*="rounded-full"] {
+          padding: 0.5rem !important;
+        }
+
+        .ar-mode [class*="w-7"] {
+          width: 1.25rem !important;
+          height: 1.25rem !important;
+        }
+      }
+
+      /* ── Pantallas muy pequeñas (< 360px ancho) ─────────────── */
+      @media (max-width: 359px) {
+        .ar-mode [class*="text-2xl"] {
+          font-size: 1rem !important;
+        }
+
+        .ar-mode [class*="px-8"] {
+          padding-left: 0.75rem !important;
+          padding-right: 0.75rem !important;
+        }
+
+        .ar-mode [class*="text-3xl"] {
+          font-size: 1.25rem !important;
+        }
+      }
+
+      /* ── Previene doble tap zoom en toda la app AR ───────────── */
+      .ar-mode * {
+        touch-action: manipulation;
+      }
+
+      /* Pero el canvas/3D debe aceptar todos los gestos táctiles */
+      .ar-mode canvas,
+      .ar-mode a-scene,
+      .ar-mode a-entity {
+        touch-action: none;
+      }
+
+      /* ── Evita que el teclado virtual empuje el canvas en iOS ── */
+      @supports (-webkit-touch-callout: none) {
+        .ar-mode {
+          height: -webkit-fill-available;
+        }
+
+        .ar-mode #root {
+          height: -webkit-fill-available;
+        }
+
+        .ar-mode .a-canvas,
+        .ar-mode canvas {
+          height: -webkit-fill-available !important;
+        }
+      }
+
+      /* ── Rendimiento: desactiva efectos costosos en móvil ────── */
+      @media (max-width: 768px) {
+        .ar-mode [class*="backdrop-blur-2xl"] {
+          -webkit-backdrop-filter: blur(16px);
+          backdrop-filter: blur(16px);
+        }
+
+        .ar-mode [class*="shadow-2xl"] {
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
